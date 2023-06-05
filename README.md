@@ -1,2 +1,2 @@
 # DigiQuant
-A repository for testing and training new testing strategies. 
+A solution for quantitative services for your digital assets.
