@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild src/app.tsx --bundle --minify --sourcemap --outfile=public/bundle.js",
-    "start": "esbuild src/app.tsx --bundle --minify --sourcemap --outfile=public/bundle.js --watch",
-    "prod": "esbuild src/app.tsx --bundle --minify --outfile=public/bundle.js"
+    "build": "esbuild src/app.tsx --bundle --minify --loader:.wgsl=text --sourcemap --outfile=public/bundle.js",
+    "start": "esbuild src/app.tsx --bundle --minify --loader:.wgsl=text --sourcemap --outfile=public/bundle.js --watch",
+    "prod": "esbuild src/app.tsx --bundle --minify --loader:.wgsl=text --outfile=public/bundle.js"
   },
   "repository": {
     "type": "git",
@@ -21,8 +21,15 @@
   },
   "homepage": "https://github.com/arcman7/DigiQuant#readme",
   "dependencies": {
+    "@babylonjs/core": "^6.6.0",
+    "@babylonjs/gui": "^6.6.0",
+    "@babylonjs/inspector": "^6.6.0",
+    "@babylonjs/loaders": "^6.6.0",
+    "@babylonjs/materials": "^6.6.0",
+    "@monaco-editor/react": "^4.5.1",
     "@types/react": "^18.2.8",
     "@types/react-dom": "^18.2.4",
+    "@webgpu/types": "^0.1.32",
     "esbuild": "^0.17.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
