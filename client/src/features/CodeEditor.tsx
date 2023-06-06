@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Editor  from '@monaco-editor/react';
 import styled from 'styled-components';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -74,15 +74,23 @@ const CodeEditorSpan = styled.span`
   align-items: center;
 `;
 
+type CurrentSettings = {
+  theme: {
+    background: string,
+    text: string,
+    border: string,
+  }
+};
+
 const EditorCurrentSettings = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
   width: 100%;
-  height: 20px;
-  border-top: 1px solid ${props => props.theme.border};
-  border-bottom: 1px solid ${props => props.theme.border};
-  background-color: ${props => props.theme.background};;
+  height: 20px; ${/*@ts-ignore*/ '' }
+  border-top: 1px solid ${(props: CurrentSettings) => props.theme.border};
+  border-bottom: 1px solid ${(props: CurrentSettings) => props.theme.border};
+  background-color: ${(props: CurrentSettings) => props.theme.background};
   font-size: 0.75em;
 
   span {
@@ -90,14 +98,30 @@ const EditorCurrentSettings = styled.div`
     padding-right: 10px;
     height: 100%;
     display: flex;
-    color: ${props => props.theme.text}};
+    color: ${(props: CurrentSettings) => props.theme.text};
   }
 `;
 
-const CodeEditor = () => {
-  const [language, setLanguage] = useState('typescript');
-  const [theme, setTheme] = useState('vs-dark');
-  const [defaultCodeExample, setDefaultCodeExample] = useState(defaultExamplesByLanguage[language as keyof typeof defaultExamplesByLanguage]);
+export type CodeEditorProps = {
+  saveUserFile: (
+    filename: string, filecontent: string, filetype: string
+  ) => void,
+  filenames: string[],
+  currentFileIndex?: number,
+};
+
+const CodeEditor = ({
+  saveUserFile, filenames, currentFileIndex = 0
+}: CodeEditorProps) => {
+  const [language, setLanguage] = useState<string>('typescript');
+  const [theme, setTheme] = useState<string>('vs-dark');
+  const [defaultCodeExample, setDefaultCodeExample] = useState<string>(
+    defaultExamplesByLanguage[language as keyof typeof defaultExamplesByLanguage]
+  );
+  const [filename, setFilename] = useState<string>(
+    filenames[currentFileIndex] || 'trading_algo_0'
+  );
+  const [filecontent, setFilecontent] = useState<string>('');
 
   const onChoseLanguage = (e: MouseEvent) => {
     //@ts-ignore
@@ -111,6 +135,16 @@ const CodeEditor = () => {
     setTheme(selectedTheme);
   };
 
+  const onChoseFilename = (e: MouseEvent) => {
+    //@ts-ignore
+    const selectedFilename: string = e.target.dataset.name
+    setFilename(selectedFilename);
+  };
+
+  const processChange = debounce((fileContent: string) => {
+    saveUserFile(filename, fileContent, language);
+  });
+
   useEffect(() => {
     setDefaultCodeExample(
       defaultExamplesByLanguage[language as keyof typeof defaultExamplesByLanguage]
@@ -118,7 +152,7 @@ const CodeEditor = () => {
   }, [language, theme]);
 
   const languages = ['typescript', 'javascript', 'python', 'c', 'go'];
-  const renderedLanguages = languages.map((language, index) => {
+  const renderedLanguages = languages.map((language: string, index: number) => {
     return (
       <DropdownItem
         className="button"
@@ -167,6 +201,30 @@ const CodeEditor = () => {
     </DropdownNoBorder>
   );
 
+  const renderedFilenames = filenames.map((filename, index) => {
+    return (
+      <DropdownItem
+        className="button"
+        key={index}
+        data-name={filename}
+        onClick={onChoseFilename}
+      >{filename}
+      </DropdownItem>
+    );
+  });
+
+  const fileDropdownMenu = (
+    <DropdownNoBorder className="shadow-none">
+      <DropdownToggle className="button shadow-none" variant="none">
+       File
+      </DropdownToggle>
+      
+      <DropdownMenu>
+        {renderedFilenames}
+      </DropdownMenu>
+    </DropdownNoBorder>
+  );
+
   return (
     <CodeEditorContainer id="code-editor-container">
       <CodeEditorOptionsMenu id="code-editor-options-menu">
@@ -175,6 +233,7 @@ const CodeEditor = () => {
         </CodeEditorSpan>
         {languageDropdownMenu}
         {themeDropdownMenu}
+        {fileDropdownMenu}
       </CodeEditorOptionsMenu>
 
       <Editor
@@ -186,7 +245,8 @@ const CodeEditor = () => {
         value={defaultCodeExample}
         language={language}
         onChange={(value, event) => {
-          console.log({value, event});
+          // console.log({value, event});
+          processChange(value || '');
         }}
       />
       <EditorCurrentSettings id="code-editor-current-settings"
@@ -196,6 +256,7 @@ const CodeEditor = () => {
           border: theme === 'vs-dark' ? '#808080' : '#f1f1f1', //'#054f96',
         }}
         >
+        <span>{filename}</span>
         <span>{language}</span>
         <span>{theme}</span>
       </EditorCurrentSettings>
@@ -203,6 +264,17 @@ const CodeEditor = () => {
   );
 };  
 export default CodeEditor;
+
+/* Helpers & constants */
+
+function debounce(func: (fileContent: string) => void, timeout: number = 300) {
+  let timer: number;
+  return (fileContent: string) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func(fileContent); }, timeout);
+  };
+}
+
 
 export const defaultExamplesByLanguage = {
   typescript: `
