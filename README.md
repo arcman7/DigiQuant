@@ -1,6 +1,8 @@
 # DigiQuant
 A solution for quantitative services for your digital assets.
 
+![App Diagram](https://github.com/arcman7/DigiQuant/blob/arcman-start-adding-algo-user-features/app_diagram.png)
+
 # Client
 
 ## Installation
