@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Editor  from '@monaco-editor/react';
 import styled from 'styled-components';
 import Dropdown from 'react-bootstrap/Dropdown';
+import type { UserFile } from "../services/UserFiles";
 
 const CodeEditorContainer = styled.div`
   display: flex;
@@ -106,12 +107,14 @@ export type CodeEditorProps = {
   saveUserFile: (
     filename: string, filecontent: string, filetype: string
   ) => void,
+  getUserFile: (filename: string) => Promise<UserFile | null>,
   filenames: string[],
-  currentFileIndex?: number,
+  currentFileIndex: number,
+  setCurrentFileIndex: (index: number) => void,
 };
 
 const CodeEditor = ({
-  saveUserFile, filenames, currentFileIndex = 0
+  saveUserFile, getUserFile, filenames, currentFileIndex, setCurrentFileIndex
 }: CodeEditorProps) => {
   const [language, setLanguage] = useState<string>('typescript');
   const [theme, setTheme] = useState<string>('vs-dark');
@@ -121,7 +124,21 @@ const CodeEditor = ({
   const [filename, setFilename] = useState<string>(
     filenames[currentFileIndex] || 'trading_algo_0'
   );
-  const [filecontent, setFilecontent] = useState<string>('');
+  const [filecontent, setFilecontent] = useState<string>(defaultCodeExample);
+
+  useEffect(() => {
+    if (filenames.length === 0) return;
+
+    setFilename(filenames[currentFileIndex]);
+
+    getUserFile(filenames[currentFileIndex]).then((file) => {
+      if (!file) return;
+
+      setFilecontent(file.content);
+      setLanguage(file.type);
+    });
+
+  }, [currentFileIndex, filenames]);
 
   const onChoseLanguage = (e: MouseEvent) => {
     //@ts-ignore
@@ -138,7 +155,9 @@ const CodeEditor = ({
   const onChoseFilename = (e: MouseEvent) => {
     //@ts-ignore
     const selectedFilename: string = e.target.dataset.name
-    setFilename(selectedFilename);
+    console.log(e)
+    // setFilename(selectedFilename);
+    setCurrentFileIndex(filenames.indexOf(selectedFilename));
   };
 
   const processChange = debounce((fileContent: string) => {
@@ -242,7 +261,7 @@ const CodeEditor = ({
         defaultLanguage="typescript"
         theme={theme}
         defaultValue={defaultCodeExample}
-        value={defaultCodeExample}
+        value={filecontent}
         language={language}
         onChange={(value, event) => {
           // console.log({value, event});
