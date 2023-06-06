@@ -6,10 +6,12 @@ A solution for quantitative services for your digital assets.
 ## Installation
 After cloning the repository to your local machine, run the following command:
 ```
-npm install
+cd client && npm install
 ```
 
 ## Usage
+Make sure you're current working director is `client`:
+`cd client`
 
 The following build commands are supported:
 
