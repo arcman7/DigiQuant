@@ -10,8 +10,7 @@ cd client && npm install
 ```
 
 ## Usage
-Make sure you're current working director is `client`:
-`cd client`
+Make sure you're current working director is `client`
 
 The following build commands are supported:
 
