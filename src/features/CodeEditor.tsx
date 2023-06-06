@@ -1,20 +1,20 @@
-import React, { useCallback, useState, useEffect } from "react";
-import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
+import React, { useState, useEffect } from "react";
+import Editor  from '@monaco-editor/react';
 import styled from 'styled-components';
 import Dropdown from 'react-bootstrap/Dropdown';
 
-
 const CodeEditorContainer = styled.div`
   display: flex;
-  // justify-content: space-between;
-  align-items: center;
-  width: 60vh;
+  width: 60vw;
   height: 90vh;
   flex-direction: column;
+  align-items: stretch;
+  border-right: 1px solid #808080;
 `;
 
 const CodeEditorOptionsMenu = styled.menu`
   display: flex;
+  flex-grow: 1;
   justify-content: flex-start;
   align-items: center;
   width: 100%;
@@ -22,6 +22,7 @@ const CodeEditorOptionsMenu = styled.menu`
   flex-direction: row;
   background-color: #f1f1f1;
   padding: 0;
+  margin: 0;
 `;
 
 const DropdownMenu = styled(Dropdown.Menu)`
@@ -29,7 +30,6 @@ const DropdownMenu = styled(Dropdown.Menu)`
   overflow-y: auto;
   margin: 0;
   padding: 0;
-  padding-top: 6px;
 `;
 
 const DropdownNoBorder = styled(Dropdown)`
@@ -38,10 +38,6 @@ const DropdownNoBorder = styled(Dropdown)`
   height: 100%;
   padding: 0;
 
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  font-weight: normal;
   :focus {
     border: none !important;
     outline: none !important;
@@ -78,7 +74,25 @@ const CodeEditorSpan = styled.span`
   align-items: center;
 `;
 
+const EditorCurrentSettings = styled.div`
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  height: 20px;
+  border-top: 1px solid ${props => props.theme.border};
+  border-bottom: 1px solid ${props => props.theme.border};
+  background-color: ${props => props.theme.background};;
+  font-size: 0.75em;
 
+  span {
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 100%;
+    display: flex;
+    color: ${props => props.theme.text}};
+  }
+`;
 
 const CodeEditor = () => {
   const [language, setLanguage] = useState('typescript');
@@ -103,7 +117,7 @@ const CodeEditor = () => {
     );
   }, [language, theme]);
 
-  const languages = ['typescript', 'javascript', 'python', 'c++', 'go'];
+  const languages = ['typescript', 'javascript', 'python', 'c', 'go'];
   const renderedLanguages = languages.map((language, index) => {
     return (
       <DropdownItem
@@ -162,6 +176,7 @@ const CodeEditor = () => {
         {languageDropdownMenu}
         {themeDropdownMenu}
       </CodeEditorOptionsMenu>
+
       <Editor
         height="90%"
         width="100%"
@@ -170,7 +185,20 @@ const CodeEditor = () => {
         defaultValue={defaultCodeExample}
         value={defaultCodeExample}
         language={language}
+        onChange={(value, event) => {
+          console.log({value, event});
+        }}
       />
+      <EditorCurrentSettings id="code-editor-current-settings"
+        theme={{
+          background: theme === 'vs-dark' ? '#4a4747' : '#ffffff',
+          text: theme === 'vs-dark' ? '#f1f1f1' : '#d94c0c', //'#5A5A5A',
+          border: theme === 'vs-dark' ? '#808080' : '#f1f1f1', //'#054f96',
+        }}
+        >
+        <span>{language}</span>
+        <span>{theme}</span>
+      </EditorCurrentSettings>
     </CodeEditorContainer>
   );
 };  
@@ -191,13 +219,13 @@ function foo(bar = [0,1,2,3,4,5,6]) {
 def foo(bar = [0,1,2,3,4,5,6]):
   #... your code here 
   `,
-  'c++': `
-void foo(int bar[7] = {0,1,2,3,4,5,6}) {
+  'c': `
+void foo(double bar[7] = {0,1,2,3,4,5,6}) {
   /*... your code here */
 }
   `,
   go: `
-func foo(bar []int = []int{0,1,2,3,4,5,6}) {
+func foo(bar []float32 = [...]float32{0,1,2,3,4,5,6}) {
   /*... your code here */
 }
   `,

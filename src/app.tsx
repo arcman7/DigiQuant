@@ -7,10 +7,10 @@ import testComputeShader from './shaders/testComputeShader.wgsl';
 import CodeEditor from "./features/CodeEditor";
 
 const App = () => {
-  return(<>
+  return (<>
     <CodeEditor></CodeEditor>
     <canvas id="canvas"></canvas>
-  </>)
+  </>);
 };
 
 
