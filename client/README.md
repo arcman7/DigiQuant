@@ -1,18 +1,13 @@
 # DigiQuant
 A solution for quantitative services for your digital assets.
 
-![App Diagram](https://github.com/arcman7/DigiQuant/blob/arcman-start-adding-algo-user-features/app_diagram.png)
-
-# Client
-
-## Installation
+# Installation
 After cloning the repository to your local machine, run the following command:
 ```
-cd client && npm install
+npm install
 ```
 
-## Usage
-Make sure you're current working director is `client`
+# Usage
 
 The following build commands are supported:
 

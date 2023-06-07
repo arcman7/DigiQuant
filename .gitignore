@@ -1,5 +1,9 @@
-node_modules
 .DS_Store
 notes.txt
-public/bundle.js
-public/bundle.js.map
+node_modules
+client/node_modules
+client/public/bundle.js
+client/public/bundle.js.map
+client/public/bundle.css
+client/public/bundle.css.map
+.vscode
