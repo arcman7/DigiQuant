@@ -1,4 +1,4 @@
-
+import Papa from 'papaparse';
 
 export const readChunkAsText = (
   file: File,
