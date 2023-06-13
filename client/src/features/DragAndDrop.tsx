@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
-const DragTarget = styled.div`
+// import { readChunkAsText } from "../helpers/FileReader";
+
+type DragEvent = React.DragEvent<HTMLDivElement>;
+type DragTargetProps = {
+  onDragEnter: (event: DragEvent) => void;
+  onDragOver: (event: DragEvent) => void;
+  onDragLeave: (event: DragEvent) => void;
+  onDrop: (event: DragEvent) => void;
+};
+
+const DragTarget = styled.div<DragTargetProps>`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -47,7 +57,7 @@ const CurrentMessageSpan = styled.span`
   }
 `;
 
-const ChildrenSpan = styled.span`
+const ChildrenAnchor = styled.span`
   display: flex;
   justify-content: center;
   font-size: 1.1em;
@@ -59,6 +69,7 @@ const ChildrenSpan = styled.span`
 `;
 export type DragAndDropProps = {
   children: React.ReactNode;
+  onDrop: (files: File[]) => void;
   onDragMessage?: string;
   onUploadingMessage?: string;
   onProcessingMessage?: string;
@@ -66,7 +77,8 @@ export type DragAndDropProps = {
   idleMessage?: string;
 };
 
-type DRAG_STATES = 0 | 1 | 2 | 3 | 4;
+type DRAG_STATES = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 const STATE_IDLE: DRAG_STATES = 0;
 const STATE_DRAG_ENTER: DRAG_STATES = 1;
 const STATE_DRAG_OVER: DRAG_STATES = 2;
@@ -76,14 +88,22 @@ const STATE_DRAG_UPLOADING: DRAG_STATES = 5;
 const STATE_DRAG_PROCESSING: DRAG_STATES = 6;
 const STATE_DRAG_DONE: DRAG_STATES = 7;
 
+const defaultMessages = {
+  idleMessage: "Drag and drop files here.", //, or click to select files to upload.",
+  onDragMessage: "Release the mouse to drop files now.",
+  onUploadingMessage: "Uploading files...",
+  onProcessingMessage: "Processing files...",
+  onDoneMessage: "Done processing files.",
+};
+
 const getCurrentMessage = (
   currentState: DRAG_STATES,
   props: {
-    idleMessage?: string;
-    onDragMessage?: string;
-    onUploadingMessage?: string;
-    onProcessingMessage?: string;
-    onDoneMessage?: string;
+    idleMessage: string;
+    onDragMessage: string;
+    onUploadingMessage: string;
+    onProcessingMessage: string;
+    onDoneMessage: string;
   }
 ) => {
   switch (currentState) {
@@ -107,32 +127,25 @@ const getCurrentMessage = (
   }
 };
 
-const DragAndDrop = ({
-  children,
-  idleMessage = "Drag and drop files here.", //, or click to select files to upload.",
-  onDragMessage = "Release the mouse to drop files now.",
-  onUploadingMessage = "Uploading files...",
-  onProcessingMessage = "Processing files...",
-  onDoneMessage = "Done processing files.",
-}) => {
-  const [dragActive, setDragActive] = useState(false);
-  const [dragOverState, setDragOverState] = useState(STATE_IDLE);
+const DragAndDrop = (props: DragAndDropProps) => {
+  const [dragActive, setDragActive] = useState<boolean>(false);
+  const [dragOverState, setDragOverState] = useState<DRAG_STATES>(STATE_IDLE);
+
+  const usedProps = {
+    ...props,
+    ...defaultMessages,
+  };
+
+  const { children, idleMessage, onDrop } = usedProps;
+
   const [currentMessage, setCurrentMessage] = useState(idleMessage);
 
   useEffect(() => {
     console.log("dragOverState", dragOverState);
-    setCurrentMessage(
-      getCurrentMessage(dragOverState, {
-        idleMessage,
-        onDragMessage,
-        onUploadingMessage,
-        onProcessingMessage,
-        onDoneMessage,
-      })
-    );
+    setCurrentMessage(getCurrentMessage(dragOverState, usedProps));
   }, [dragOverState]);
 
-  const dragEnter = (event: HTMLDragEvent) => {
+  const dragEnter = (event: DragEvent) => {
     console.log("drag ENTER event");
     // Prevent the default action for the `drag` event
     event.preventDefault();
@@ -140,10 +153,9 @@ const DragAndDrop = ({
     setDragActive(true);
     if (dragOverState !== STATE_DRAG_OVER) {
       setDragOverState(STATE_DRAG_ENTER);
-
     }
   };
-  const dragOver = (event: HTMLDragEvent) => {
+  const dragOver = (event: DragEvent) => {
     // Prevent the default action for the `dragover` event
     event.preventDefault();
     event.stopPropagation();
@@ -151,7 +163,7 @@ const DragAndDrop = ({
     setDragOverState(STATE_DRAG_OVER);
   };
 
-  const dragLeave = (event: HTMLDragEvent) => {
+  const dragLeave = (event: DragEvent) => {
     console.log("drag LEAVE event");
     // Prevent the default action for the `drop` event
     event.preventDefault();
@@ -160,13 +172,20 @@ const DragAndDrop = ({
     setDragOverState(STATE_DRAG_LEAVE);
   };
 
-  const dragDrop = (event: HTMLDragEvent) => {
-    console.log("drag DROP event", event.dataTransfer.files);
+  const dragDrop = (event: DragEvent) => {
+    console.log("drag DROP event", event);
+    const files = event.dataTransfer?.files || event.dataTransfer?.items || [];
+
+    console.log("files", files);
     // Prevent the default action for the `drop` event
     event.preventDefault();
     event.stopPropagation();
     setDragActive(false);
     setDragOverState(STATE_DRAG_DROP);
+
+    if (files.length > 0) {
+      onDrop(files);
+    }
   };
 
   return (
@@ -178,7 +197,7 @@ const DragAndDrop = ({
       className={`${dragActive ? "drag-active drop-zone" : "drop-zone"}`}
     >
       <ContentContainer>
-        <ChildrenSpan>{children}</ChildrenSpan>
+        <ChildrenAnchor>{children}</ChildrenAnchor>
         <CurrentMessageSpan className={dragActive ? "drag-active" : ""}>
           {currentMessage}
         </CurrentMessageSpan>

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Dropdown from "react-bootstrap/Dropdown";
 
 import DragAndDrop from "./DragAndDrop";
+import { readChunkAsText } from "../helpers/FileReader";
 
 import type { UserFile } from "../services/UserFiles";
 
@@ -23,18 +24,6 @@ const DataAndFilesContainer = styled.div`
   background: linear-gradient(135deg, #b6a7e8, #93c0ed);
 `;
 
-const DataHeaderSpan = styled.span`
-  display: flex;
-  justify-content: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  border-right: 1px solid #808080;
-  padding-left: 10px;
-  padding-right: 10px;
-  height: 100%;
-  align-items: center;
-`;
-
 const Menubar = styled.menu`
   display: flex;
   flex-grow: 1;
@@ -51,10 +40,6 @@ const Menubar = styled.menu`
   background: linear-gradient(135deg, #b6a7e8, #93c0ed);
 `;
 
-// type MenuChoiceProps = {
-//   onClick?: () => void;
-// };
-
 const MenuChoice = styled(Dropdown)`
   display: flex;
   justify-content: center;
@@ -65,26 +50,47 @@ const MenuChoice = styled(Dropdown)`
   padding-left: 10px;
   padding-right: 10px;
   font-size: 1.5em;
+  border-right: 1px solid #800000;
+  user-select: none;
   &:hover {
     background-color: rgba(118, 184, 253, 0.55);
     cursor: pointer;
   }
-  border-right: 1px solid #800000;
+  &.active {
+    // border-bottom: 4px solid rgba(118, 184, 253, 0.75);
+    border-bottom: 4px solid rgba(39, 88, 245, 0.8);
+  }
 `;
 
-const DataAndFilesManager = (
-  {
-    //children
+const PreviewFileAsText = styled.div`
+  display: flex;
+  max-height: 250px;
+  width: 100%;
+  overflow-y: none;
+  overflow-x: none;
+  padding: 10px;
+  &.active {
+    overflow-y: scroll;
+    overflow-x: scroll;
   }
-) => {
+`;
+
+const DataAndFilesManager = ({}) => {
   const [selectedMenuChoice, setSelectedMenuChoice] = useState<number>(0);
+  const [processingUpload, setProcessingUpload] = useState<boolean>(false);
+  const menuChoices = ["Upload", "Public Datasets", "My Datasets"];
+
   const renderMenuChoice = (choice: string, index: number) => {
     const menuChoiceClick = () => {
       console.log("menuChoiceClick");
       setSelectedMenuChoice(index);
     };
     return (
-      <MenuChoice key={index} onClick={menuChoiceClick}>
+      <MenuChoice
+        className={selectedMenuChoice === index ? "active" : ""}
+        key={index}
+        onClick={menuChoiceClick}
+      >
         {choice}
       </MenuChoice>
     );
@@ -93,9 +99,21 @@ const DataAndFilesManager = (
   const renderedView = (() => {
     switch (selectedMenuChoice) {
       case 0:
-        return <DragAndDrop>Data and Files</DragAndDrop>;
+        return (
+          <DragAndDrop
+            onDrop={(files: File[]) => {
+              setProcessingUpload(true);
+            }}
+          >
+            <PreviewFileAsText className={processingUpload ? "active" : ""}>
+              Data and Files
+            </PreviewFileAsText>
+          </DragAndDrop>
+        );
       case 1:
-        return <div>Public Datasets</div>;
+        return <div>{menuChoices[selectedMenuChoice]}</div>;
+      case 2:
+        return <div>{menuChoices[selectedMenuChoice]}</div>;
       default:
     }
   })();
@@ -103,12 +121,7 @@ const DataAndFilesManager = (
   return (
     <DataAndFilesContainer id="data-and-files-manager">
       {/* {children} */}
-      <Menubar>
-        {/* <MenuChoice>Upload </MenuChoice>
-        <MenuChoice>Public Datasets </MenuChoice> */}
-        {["Upload", "Public Datasets"].map(renderMenuChoice)}
-      </Menubar>
-      {/* <DataHeaderSpan>Data and Files</DataHeaderSpan> */}
+      <Menubar>{menuChoices.map(renderMenuChoice)}</Menubar>
       {renderedView}
     </DataAndFilesContainer>
   );
