@@ -19,11 +19,12 @@ const CodeEditorOptionsMenu = styled.menu`
   justify-content: flex-start;
   align-items: center;
   width: 100%;
-  height: 50px;
   flex-direction: row;
   background-color: #f1f1f1;
   padding: 0;
   margin: 0;
+  max-height: 75px;
+  min-height: 75px;
 `;
 
 const DropdownMenu = styled(Dropdown.Menu)`
