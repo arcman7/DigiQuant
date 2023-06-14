@@ -13,30 +13,51 @@ import {
   getUserFilesDB,
   saveUserFile,
 } from "./services/UserFiles";
+import { UserDataset, getUserDataset, getUserDatasetsDB, saveUserDataset } from "./services/UserDatasets";
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: row;
 `;
 
-const dbLoadingProm = getUserFilesDB();
-let hasLoaded = false;
+const userFilesDBLoadingProm = getUserFilesDB();
+let userFilesDBhasLoaded = false;
+
+const userDatasetsDBLoadingProm = getUserDatasetsDB();
+let userDatasetsDBhasLoaded = false;
 
 const App = () => {
-  const [userFilesDb, setUserFilesDb] = useState<LocalForage | null>(null);
+  const [_, setUserFilesDb] = useState<LocalForage | null>(null);
   const [filenames, setFilenames] = useState<string[]>([]);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
 
-  dbLoadingProm.then((db) => {
-    if (hasLoaded) return;
+  const [__, setUserDatasetsDb] = useState<LocalForage | null>(null);
+  const [datasetNames, setDatasetNames] = useState<string[]>([]);
+  const [currentDatasetIndex, setCurrentDatasetIndex] = useState<number>(0);
 
-    console.log("userDB loaded", db);
+
+  userFilesDBLoadingProm.then((db) => {
+    if (userFilesDBhasLoaded) return;
+
+    console.log("userFilesDB loaded", db);
     setUserFilesDb(db);
     db.keys().then((keys) => {
       setFilenames(keys);
     });
 
-    hasLoaded = true;
+    userFilesDBhasLoaded = true;
+  });
+
+  userDatasetsDBLoadingProm.then((db) => {
+    if (userDatasetsDBhasLoaded) return;
+
+    console.log("userDatasetsDB loaded", db);
+    setUserDatasetsDb(db);
+    db.keys().then((keys) => {
+      setDatasetNames(keys);
+    });
+
+    userDatasetsDBhasLoaded = true;
   });
 
   const saveUserFileQueued = (
@@ -44,7 +65,7 @@ const App = () => {
     filecontent: string,
     filetype: string
   ) => {
-    dbLoadingProm.then((db) => {
+    return userFilesDBLoadingProm.then((db) => {
       return saveUserFile(db, filename, {
         type: filetype,
         content: filecontent,
@@ -55,9 +76,31 @@ const App = () => {
     });
   };
 
+  const saveUserDatasetQueued = (
+    filename: string,
+    dataset: string | File,
+    filetype: string,
+  ) => {
+    return userDatasetsDBLoadingProm.then((db) => {
+      return saveUserDataset(db, filename, {
+        filetype,
+        dataset,
+        lastModified: Date.now(),
+      }).catch((err) => {
+        console.error(err);
+      });
+    });
+  };
+
   const getUserFileQueued = (filename: string): Promise<UserFile | null> => {
-    return dbLoadingProm.then((db) => {
+    return userFilesDBLoadingProm.then((db) => {
       return getUserFile(db, filename);
+    });
+  };
+
+  const getUserDatasetQueued = (datasetName: string): Promise<UserDataset | null> => {
+    return userDatasetsDBLoadingProm.then((db) => {
+      return getUserDataset(db, datasetName);
     });
   };
 
@@ -71,7 +114,9 @@ const App = () => {
           currentFileIndex={currentFileIndex}
           setCurrentFileIndex={setCurrentFileIndex}
         />
-        <DataAndFilesManager />
+        <DataAndFilesManager saveUserDataset={saveUserDatasetQueued} getUserDataset={getUserDatasetQueued} datasetNames={datasetNames}
+        currentDatasetIndex={currentDatasetIndex} setCurrentDatasetIndex={setCurrentDatasetIndex}
+        />
         {/* <canvas id="canvas"></canvas> */}
       </AppContainer>
     </>

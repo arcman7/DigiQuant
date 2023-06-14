@@ -1,5 +1,17 @@
 import Papa from 'papaparse';
 
+export const parseCSV = (
+  file: File,
+  // options: Papa.ParseLocalConfig
+) => {
+  return Papa.parse(file, {
+    complete: function(results) {
+      console.log(results);
+    },
+    // ...options
+  });
+};
+
 export const readChunkAsText = (
   file: File,
   start: number,
@@ -72,6 +84,58 @@ export const bytesToSize = (bytes: number) => {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${Math.round(bytes / Math.pow(1024, i))} ${sizes[i]}`;
 };
+
+/*export const compressNumber = (n: number) => {
+  if (n < 0 || n > 4294967295) {
+    throw new Error("Number must be between 0 and 4294967295.");
+  }
+  const bytes = [0, 0, 0, 0];
+  
+  for (let i = 0; i < 4; i++) {
+    bytes[i] = n % 256;
+    n = Math.floor(n / 256);
+  }
+  return bytes;
+};
+*/
+/*export const decompressNumber = (bytes: [number, number, number, number]) => {
+  let n = 0;
+  for (let i = 3; i >= 0; i--) {
+    n = n * 256 + bytes[3];
+  }
+
+  return n
+}
+*/
+
+export const compressNumber = (n: number) => {
+  if (n < 0 || n > 4294967295) {
+    throw new Error("Number must be between 0 and 4294967295.");
+  }
+  
+  const bytes = [0, 0, 0, 0];
+  bytes[0] = n % 255;
+  n = Math.floor(n / 255);
+  bytes[1] = n % 255;
+  n = Math.floor(n / 255);
+  bytes[2] = n % 255;
+  n = Math.floor(n / 255);
+  bytes[3] = n % 255;
+
+  return bytes;
+};
+
+export const decompressNumber = (bytes: [number, number, number, number]) => {
+  let n = 0;
+  n = n * 255 + bytes[3];
+  n = n * 255 + bytes[2];
+  n = n * 255 + bytes[1];
+  n = n * 255 + bytes[0];
+
+  return n
+}
+
+export const getExtension = (filename: string) => filename.split(".").pop();
 
 
 export const getFileStructurePattern = (filestring: string, fileType = 'CSV') => {

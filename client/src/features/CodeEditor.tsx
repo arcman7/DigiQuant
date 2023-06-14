@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import Editor  from '@monaco-editor/react';
-import styled from 'styled-components';
-import Dropdown from 'react-bootstrap/Dropdown';
+import Editor from "@monaco-editor/react";
+import styled from "styled-components";
+import Dropdown from "react-bootstrap/Dropdown";
 import type { UserFile } from "../services/UserFiles";
 
 const CodeEditorContainer = styled.div`
@@ -78,10 +78,10 @@ const CodeEditorSpan = styled.span`
 
 type CurrentSettings = {
   theme: {
-    background: string,
-    text: string,
-    border: string,
-  }
+    background: string;
+    text: string;
+    border: string;
+  };
 };
 
 const EditorCurrentSettings = styled.div`
@@ -89,7 +89,8 @@ const EditorCurrentSettings = styled.div`
   justify-content: space-around;
   align-items: center;
   width: 100%;
-  height: 20px; ${/*@ts-ignore*/ '' }
+  height: 20px;
+  ${/*@ts-ignore*/ ""}
   border-top: 1px solid ${(props: CurrentSettings) => props.theme.border};
   border-bottom: 1px solid ${(props: CurrentSettings) => props.theme.border};
   background-color: ${(props: CurrentSettings) => props.theme.background};
@@ -106,24 +107,32 @@ const EditorCurrentSettings = styled.div`
 
 export type CodeEditorProps = {
   saveUserFile: (
-    filename: string, filecontent: string, filetype: string
-  ) => void,
-  getUserFile: (filename: string) => Promise<UserFile | null>,
-  filenames: string[],
-  currentFileIndex: number,
-  setCurrentFileIndex: (index: number) => void,
+    filename: string,
+    filecontent: string,
+    filetype: string
+  ) => void;
+  getUserFile: (filename: string) => Promise<UserFile | null>;
+  filenames: string[];
+  currentFileIndex: number;
+  setCurrentFileIndex: (index: number) => void;
 };
 
 const CodeEditor = ({
-  saveUserFile, getUserFile, filenames, currentFileIndex, setCurrentFileIndex
+  saveUserFile,
+  getUserFile,
+  filenames,
+  currentFileIndex,
+  setCurrentFileIndex,
 }: CodeEditorProps) => {
-  const [language, setLanguage] = useState<string>('typescript');
-  const [theme, setTheme] = useState<string>('vs-dark');
+  const [language, setLanguage] = useState<string>("typescript");
+  const [theme, setTheme] = useState<string>("vs-dark");
   const [defaultCodeExample, setDefaultCodeExample] = useState<string>(
-    defaultExamplesByLanguage[language as keyof typeof defaultExamplesByLanguage]
+    defaultExamplesByLanguage[
+      language as keyof typeof defaultExamplesByLanguage
+    ]
   );
   const [filename, setFilename] = useState<string>(
-    filenames[currentFileIndex] || 'trading_algo_0'
+    filenames[currentFileIndex] || "trading_algo_0"
   );
   const [filecontent, setFilecontent] = useState<string>(defaultCodeExample);
 
@@ -138,25 +147,24 @@ const CodeEditor = ({
       setFilecontent(file.content);
       setLanguage(file.type);
     });
-
   }, [currentFileIndex, filenames]);
 
   const onChoseLanguage = (e: MouseEvent) => {
     //@ts-ignore
-    const selectedLanguage: string = e.target.dataset.name
+    const selectedLanguage: string = e.target.dataset.name;
     setLanguage(selectedLanguage);
   };
 
   const onChoseTheme = (e: MouseEvent) => {
     //@ts-ignore
-    const selectedTheme: string = e.target.dataset.name
+    const selectedTheme: string = e.target.dataset.name;
     setTheme(selectedTheme);
   };
 
   const onChoseFilename = (e: MouseEvent) => {
     //@ts-ignore
-    const selectedFilename: string = e.target.dataset.name
-    console.log(e)
+    const selectedFilename: string = e.target.dataset.name;
+    console.log(e);
     // setFilename(selectedFilename);
     setCurrentFileIndex(filenames.indexOf(selectedFilename));
   };
@@ -167,11 +175,13 @@ const CodeEditor = ({
 
   useEffect(() => {
     setDefaultCodeExample(
-      defaultExamplesByLanguage[language as keyof typeof defaultExamplesByLanguage]
+      defaultExamplesByLanguage[
+        language as keyof typeof defaultExamplesByLanguage
+      ]
     );
   }, [language, theme]);
 
-  const languages = ['typescript', 'javascript', 'python', 'c', 'go'];
+  const languages = ["typescript", "javascript", "python", "c", "go"];
   const renderedLanguages = languages.map((language: string, index: number) => {
     return (
       <DropdownItem
@@ -179,7 +189,8 @@ const CodeEditor = ({
         key={index}
         data-name={language}
         onClick={onChoseLanguage}
-      >{language}
+      >
+        {language}
       </DropdownItem>
     );
   });
@@ -187,16 +198,14 @@ const CodeEditor = ({
   const languageDropdownMenu = (
     <DropdownNoBorder className="shadow-none">
       <DropdownToggle className="button shadow-none" variant="none">
-       Language
+        Language
       </DropdownToggle>
-      
-      <DropdownMenu>
-        {renderedLanguages}
-      </DropdownMenu>
+
+      <DropdownMenu>{renderedLanguages}</DropdownMenu>
     </DropdownNoBorder>
   );
 
-  const themes = ['vs-dark', 'light'];
+  const themes = ["vs-dark", "light"];
   const renderedThemes = themes.map((theme, index) => {
     return (
       <DropdownItem
@@ -204,7 +213,8 @@ const CodeEditor = ({
         key={index}
         data-name={theme}
         onClick={onChoseTheme}
-      >{theme}
+      >
+        {theme}
       </DropdownItem>
     );
   });
@@ -212,12 +222,10 @@ const CodeEditor = ({
   const themeDropdownMenu = (
     <DropdownNoBorder className="shadow-none">
       <DropdownToggle className="button shadow-none" variant="none">
-       Theme
+        Theme
       </DropdownToggle>
-      
-      <DropdownMenu>
-        {renderedThemes}
-      </DropdownMenu>
+
+      <DropdownMenu>{renderedThemes}</DropdownMenu>
     </DropdownNoBorder>
   );
 
@@ -228,7 +236,8 @@ const CodeEditor = ({
         key={index}
         data-name={filename}
         onClick={onChoseFilename}
-      >{filename}
+      >
+        {filename}
       </DropdownItem>
     );
   });
@@ -236,21 +245,17 @@ const CodeEditor = ({
   const fileDropdownMenu = (
     <DropdownNoBorder className="shadow-none">
       <DropdownToggle className="button shadow-none" variant="none">
-       File
+        File
       </DropdownToggle>
-      
-      <DropdownMenu>
-        {renderedFilenames}
-      </DropdownMenu>
+
+      <DropdownMenu>{renderedFilenames}</DropdownMenu>
     </DropdownNoBorder>
   );
 
   return (
     <CodeEditorContainer id="code-editor-container">
       <CodeEditorOptionsMenu id="code-editor-options-menu">
-        <CodeEditorSpan>
-          Code Editor
-        </CodeEditorSpan>
+        <CodeEditorSpan>Code Editor</CodeEditorSpan>
         {languageDropdownMenu}
         {themeDropdownMenu}
         {fileDropdownMenu}
@@ -266,23 +271,24 @@ const CodeEditor = ({
         language={language}
         onChange={(value, event) => {
           // console.log({value, event});
-          processChange(value || '');
+          processChange(value || "");
         }}
       />
-      <EditorCurrentSettings id="code-editor-current-settings"
+      <EditorCurrentSettings
+        id="code-editor-current-settings"
         theme={{
-          background: theme === 'vs-dark' ? '#4a4747' : '#ffffff',
-          text: theme === 'vs-dark' ? '#f1f1f1' : '#d94c0c', //'#5A5A5A',
-          border: theme === 'vs-dark' ? '#808080' : '#f1f1f1', //'#054f96',
+          background: theme === "vs-dark" ? "#4a4747" : "#ffffff",
+          text: theme === "vs-dark" ? "#f1f1f1" : "#d94c0c", //'#5A5A5A',
+          border: theme === "vs-dark" ? "#808080" : "#f1f1f1", //'#054f96',
         }}
-        >
+      >
         <span>{filename}</span>
         <span>{language}</span>
         <span>{theme}</span>
       </EditorCurrentSettings>
     </CodeEditorContainer>
   );
-};  
+};
 export default CodeEditor;
 
 /* Helpers & constants */
@@ -290,11 +296,12 @@ export default CodeEditor;
 function debounce(func: (fileContent: string) => void, timeout: number = 300) {
   let timer: number;
   return (fileContent: string) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func(fileContent); }, timeout);
+    clearTimeout(timer); //@ts-ignore
+    timer = setTimeout(() => {
+      func(fileContent);
+    }, timeout);
   };
 }
-
 
 export const defaultExamplesByLanguage = {
   typescript: `
@@ -311,7 +318,7 @@ function foo(bar = [0,1,2,3,4,5,6]) {
 def foo(bar = [0,1,2,3,4,5,6]):
   #... your code here 
   `,
-  'c': `
+  c: `
 void foo(double bar[7] = {0,1,2,3,4,5,6}) {
   /*... your code here */
 }

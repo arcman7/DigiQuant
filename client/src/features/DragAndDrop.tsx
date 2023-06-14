@@ -63,8 +63,8 @@ const ChildrenAnchor = styled.span`
   font-size: 1.1em;
   font-weight: normal;
   user-select: none;
-  height: 50px;
-  max-height: 50px;
+  // height: 50px;
+  // max-height: 50px;
   align-items: center;
 `;
 export type DragAndDropProps = {

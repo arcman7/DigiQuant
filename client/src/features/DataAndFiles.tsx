@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import Editor from "@monaco-editor/react";
 import styled from "styled-components";
 import Dropdown from "react-bootstrap/Dropdown";
 
 import DragAndDrop from "./DragAndDrop";
-import { readChunkAsText } from "../helpers/FileReader";
-
-import type { UserFile } from "../services/UserFiles";
+import SaveDatasetForm from "./SaveDatasetForm";
+import { UserDataset } from "../services/UserDatasets";
 
 const DataAndFilesContainer = styled.div`
   display: flex;
@@ -57,28 +55,37 @@ const MenuChoice = styled(Dropdown)`
     cursor: pointer;
   }
   &.active {
-    // border-bottom: 4px solid rgba(118, 184, 253, 0.75);
     border-bottom: 4px solid rgba(39, 88, 245, 0.8);
   }
 `;
 
-const PreviewFileAsText = styled.div`
-  display: flex;
-  max-height: 250px;
-  width: 100%;
-  overflow-y: none;
-  overflow-x: none;
-  padding: 10px;
-  &.active {
-    overflow-y: scroll;
-    overflow-x: scroll;
-  }
-`;
+type DataAndFilesManagerProps = {
+  saveUserDataset: (
+    filename: string,
+    dataset: File | string,
+    filetype: string
+  ) => Promise<void>;
+  getUserDataset: (filename: string) => Promise<UserDataset | null>;
+  datasetNames: string[];
+  currentDatasetIndex: number;
+  setCurrentDatasetIndex: (index: number) => void;
+};
 
-const DataAndFilesManager = ({}) => {
+const DataAndFilesManager = ({
+  saveUserDataset,
+  getUserDataset,
+  datasetNames,
+  currentDatasetIndex,
+  setCurrentDatasetIndex,
+}: DataAndFilesManagerProps) => {
   const [selectedMenuChoice, setSelectedMenuChoice] = useState<number>(0);
   const [processingUpload, setProcessingUpload] = useState<boolean>(false);
+  const [showSaveDatasetModal, setShowSaveDatasetModal] =
+    useState<boolean>(false);
+  const [fileBeingUploaded, setFileBeingUploaded] = useState<File | null>(null);
+
   const menuChoices = ["Upload", "Public Datasets", "My Datasets"];
+  const defaultPreviewText = "Data and Files";
 
   const renderMenuChoice = (choice: string, index: number) => {
     const menuChoiceClick = () => {
@@ -102,12 +109,26 @@ const DataAndFilesManager = ({}) => {
         return (
           <DragAndDrop
             onDrop={(files: File[]) => {
+              if (files.length === 0) {
+                console.log("No files dropped.");
+                return;
+              }
+              setFileBeingUploaded(files[0]);
               setProcessingUpload(true);
+              setShowSaveDatasetModal(true);
+
             }}
           >
-            <PreviewFileAsText className={processingUpload ? "active" : ""}>
-              Data and Files
-            </PreviewFileAsText>
+            Files and Data
+            <SaveDatasetForm
+              file={fileBeingUploaded}
+              handleClose={() => {
+                setShowSaveDatasetModal(false);
+                setProcessingUpload(false);
+              }}
+              handleSubmit={() => {}}
+              show={showSaveDatasetModal}
+            />
           </DragAndDrop>
         );
       case 1:
