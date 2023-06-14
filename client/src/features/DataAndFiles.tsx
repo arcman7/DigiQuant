@@ -4,7 +4,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 
 import DragAndDrop from "./DragAndDrop";
 import SaveDatasetForm from "./SaveDatasetForm";
-import { UserDataset, UserDatasetMeta } from "../services/UserDatasets";
+import { UserDatasetMeta } from "../services/UserDatasets";
 import MyDatasets from "./MyDatasets";
 
 const DataAndFilesContainer = styled.div`
@@ -60,7 +60,12 @@ const MenuChoice = styled(Dropdown)`
   }
 `;
 
+const MY_DATASETS = 0;
+const PUBLIC_DATASETS = 1;
+const UPLOAD = 2;
+
 type DataAndFilesManagerProps = {
+  updateUserDatasetMeta: (meta: UserDatasetMeta) => Promise<void>;
   saveUserDataset: (
     filename: string,
     dataset: File | string,
@@ -70,15 +75,16 @@ type DataAndFilesManagerProps = {
     datasetMeta: UserDatasetMeta
   ) => Promise<File | string | null>;
   getUserDatasetMeta: (filename: string) => Promise<UserDatasetMeta | null>;
-  datasetMetas: UserDatasetMeta[];
+  userDatasetMetas: UserDatasetMeta[];
   currentDatasetIndex: number;
   setCurrentDatasetIndex: (index: number) => void;
 };
 
 const DataAndFilesManager = ({
+  updateUserDatasetMeta,
   saveUserDataset,
   getUserDataset,
-  datasetMetas,
+  userDatasetMetas,
   currentDatasetIndex,
   setCurrentDatasetIndex,
 }: DataAndFilesManagerProps) => {
@@ -106,17 +112,22 @@ const DataAndFilesManager = ({
     );
   };
 
-  const renderedView = (() => {
+  const currentViewRendered = (() => {
     switch (selectedMenuChoice) {
       case 0:
-        return <MyDatasets datasetMetas={datasetMetas} />;
+        return (
+          <MyDatasets
+            userDatasetMetas={userDatasetMetas}
+            updateUserDatasetMeta={updateUserDatasetMeta}
+          />
+        );
       case 1:
         return <div>{menuChoices[selectedMenuChoice]}</div>;
       default:
       case 2:
         return (
           <DragAndDrop
-            onDrop={(files: File[]) => {
+            onDrop={(files: File[] | FileList) => {
               if (files.length === 0) {
                 console.log("No files dropped.");
                 return;
@@ -141,6 +152,7 @@ const DataAndFilesManager = ({
                 return saveUserDataset(filepath, dataset, filetype).then(() => {
                   setShowSaveDatasetModal(false);
                   setProcessingUpload(false);
+                  setSelectedMenuChoice(MY_DATASETS);
                 });
               }}
               show={showSaveDatasetModal}
@@ -154,7 +166,7 @@ const DataAndFilesManager = ({
     <DataAndFilesContainer id="data-and-files-manager">
       {/* {children} */}
       <Menubar>{menuChoices.map(renderMenuChoice)}</Menubar>
-      {renderedView}
+      {currentViewRendered}
     </DataAndFilesContainer>
   );
 };

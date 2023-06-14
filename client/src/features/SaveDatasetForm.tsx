@@ -6,10 +6,8 @@ import ModalHeader from "react-bootstrap/ModalHeader";
 import ModalFooter from "react-bootstrap/ModalFooter";
 import ModalTitle from "react-bootstrap/ModalTitle";
 import Button from "react-bootstrap/Button";
-import { bytesToSize, readChunkAsText } from "../helpers/FileReader";
-import { UserDataset } from "../services/UserDatasets";
+import { bytesToSize, readChunkAsText } from "../helpers/fileReader";
 
-// import { UserDataset } from "../services/UserDatasets";
 
 const FileInfoContainer = styled.div`
   display: flex;
@@ -97,9 +95,7 @@ const SaveDatasetForm = ({
         <Button
           variant="primary"
           onClick={() => {
-            saveUserDataset(
-              file.name, file, 'text'
-            );
+            saveUserDataset(file.name, file, "text");
           }}
         >
           Save

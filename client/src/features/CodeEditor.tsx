@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import styled from "styled-components";
 import Dropdown from "react-bootstrap/Dropdown";
 import type { UserFile } from "../services/UserFiles";
+import { debounce } from "../helpers/dataIngestion";
 
 const CodeEditorContainer = styled.div`
   display: flex;
@@ -165,7 +166,6 @@ const CodeEditor = ({
     //@ts-ignore
     const selectedFilename: string = e.target.dataset.name;
     console.log(e);
-    // setFilename(selectedFilename);
     setCurrentFileIndex(filenames.indexOf(selectedFilename));
   };
 
@@ -269,7 +269,7 @@ const CodeEditor = ({
         defaultValue={defaultCodeExample}
         value={filecontent}
         language={language}
-        onChange={(value, event) => {
+        onChange={(value, _event) => {
           // console.log({value, event});
           processChange(value || "");
         }}
@@ -291,17 +291,6 @@ const CodeEditor = ({
 };
 export default CodeEditor;
 
-/* Helpers & constants */
-
-function debounce(func: (fileContent: string) => void, timeout: number = 300) {
-  let timer: number;
-  return (fileContent: string) => {
-    clearTimeout(timer); //@ts-ignore
-    timer = setTimeout(() => {
-      func(fileContent);
-    }, timeout);
-  };
-}
 
 export const defaultExamplesByLanguage = {
   typescript: `

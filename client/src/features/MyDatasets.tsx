@@ -1,30 +1,64 @@
+import { useState } from "react";
 import styled from "styled-components";
 
 import { UserDatasetMeta } from "../services/UserDatasets";
-import { bytesToSize } from "../helpers/FileReader";
+import { bytesToSize } from "../helpers/fileReader";
+import { debounce } from "../helpers/dataIngestion";
 
-const MyDatasetsContainer = styled.table`
-
+const MyDatasetsContainer = styled.table``;
+const UnprocessedDivder = styled.thead`
+  color: #512ed1;
+  font-size: 1.5em;
+  width: 100%;
+  padding-left: 10px;
+`;
+const NoBorderInput = styled.input`
+  border: none;
+  outline: none;
+  border-bottom: 1px solid #ccc;
+  margin: 0;
 `;
 
 export type MyDatasetsProps = {
-  datasetMetas: UserDatasetMeta[];
+  userDatasetMetas: UserDatasetMeta[];
+  updateUserDatasetMeta: (meta: UserDatasetMeta) => void;
 };
 
-const MyDatasets = ({ datasetMetas = [] }: MyDatasetsProps) => {
-  const renderTableRow = (datasetMeta: UserDatasetMeta) => {
+const MyDatasets = ({
+  userDatasetMetas,
+  updateUserDatasetMeta,
+}: MyDatasetsProps) => {
+  const handleInputChange = debounce(
+    (datasetName: string, meta: UserDatasetMeta) => {
+      meta.datasetName = datasetName;
+      updateUserDatasetMeta(meta);
+    }
+  );
+
+  const renderTableRow = (meta: UserDatasetMeta, i: number) => {
+    const [inputValue, setInputValue] = useState<string>(meta.datasetName);
     return (
-      <tr>
-        <td>{datasetMeta.datasetName}</td>
-        <td>{bytesToSize(datasetMeta.size)}</td>
-        <td>{datasetMeta.extension}</td>
-        <td>{datasetMeta.lastModified}</td>
+      <tr key={i}>
+        <td>
+          <NoBorderInput
+            type="text"
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              handleInputChange(e.target.value, meta);
+            }}
+          />
+        </td>
+        <td>{bytesToSize(meta.size)}</td>
+        <td>{meta.extension}</td>
+        <td>{meta.lastModified}</td>
       </tr>
     );
-  }
+  };
 
   return (
     <MyDatasetsContainer className="table">
+      <UnprocessedDivder>Text based (Unprocessed)</UnprocessedDivder>
       <thead>
         <tr>
           <th scope="col">Dataset Name</th>
@@ -34,12 +68,12 @@ const MyDatasets = ({ datasetMetas = [] }: MyDatasetsProps) => {
         </tr>
       </thead>
       <tbody>
-        {datasetMetas.map((datasetMeta) => {
-          return renderTableRow(datasetMeta);
+        {userDatasetMetas.map((meta, i) => {
+          return renderTableRow(meta, i);
         })}
       </tbody>
     </MyDatasetsContainer>
-  )
+  );
 };
 
 export default MyDatasets;

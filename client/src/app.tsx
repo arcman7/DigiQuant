@@ -14,14 +14,15 @@ import {
   saveUserFile,
 } from "./services/UserFiles";
 import {
-  UserDataset,
   UserDatasetMeta,
   getUserDataset,
   getUserDatasetMeta,
+  getUserDatasetMetas,
   getUserDatasetsDB,
   saveUserDataset,
+  updateUserDatasetMeta,
 } from "./services/UserDatasets";
-import { getFileExtension } from "./helpers/FileReader";
+import { getFileExtension } from "./helpers/fileReader";
 
 const AppContainer = styled.div`
   display: flex;
@@ -40,7 +41,7 @@ const App = () => {
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
 
   const [__, setUserDatasetsDb] = useState<LocalForage | null>(null);
-  const [datasetMetas, setDatasetMeta] = useState<UserDatasetMeta[]>([]);
+  const [userDatasetMetas, setDatasetMetas] = useState<UserDatasetMeta[]>([]);
   const [currentDatasetIndex, setCurrentDatasetIndex] = useState<number>(0);
 
   userFilesDBLoadingProm.then((db) => {
@@ -60,19 +61,8 @@ const App = () => {
 
     console.log("userDatasetsDB loaded", db);
     setUserDatasetsDb(db);
-    db.keys().then((keys) => {
-      /* TODO: Clean up this mess */
-      const datasetMetaKeys = keys.filter((key) => key.slice(-5) === "_meta");
-      Promise.all(
-        datasetMetaKeys.map((key) => getUserDatasetMeta(db, key))
-      ).then((datasetMetas: (UserDatasetMeta | null)[]) => {
-        const updatedDatasets: UserDatasetMeta[] = [];
-        datasetMetas.forEach((dataset) => {
-          if (dataset === null) return;
-          updatedDatasets.push(dataset);
-        });
-        setDatasetMeta(updatedDatasets);
-      });
+    getUserDatasetMetas(db).then((metas) => {
+      setDatasetMetas(metas || []);
     });
 
     userDatasetsDBhasLoaded = true;
@@ -104,10 +94,40 @@ const App = () => {
         filetype,
         extension: getFileExtension(datasetName),
         dataset,
-        lastModified: Date.now(),
-      }).catch((err) => {
-        console.error(err);
-      });
+      })
+        .then(async () => {
+          const userDatsetMeta = await getUserDatasetMeta(db, datasetName);
+
+          if (!userDatsetMeta) {
+            console.error(
+              `Newly saved userDatsetMeta for ${datasetName} not found`
+            );
+            return;
+          }
+
+          const updatedMetas = [...userDatasetMetas];
+          updatedMetas.push(userDatsetMeta);
+
+          setDatasetMetas(updatedMetas);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    });
+  };
+
+  const updateUserDatasetMetaQueued = (meta: UserDatasetMeta) => {
+    return userDatasetsDBLoadingProm.then((db) => {
+      return updateUserDatasetMeta(db, meta)
+        .then(() => {
+          const ind = userDatasetMetas.indexOf(meta);
+          const updatedMetas = [...userDatasetMetas];
+          updatedMetas[ind] = meta;
+          setDatasetMetas(updatedMetas);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     });
   };
 
@@ -144,10 +164,11 @@ const App = () => {
           setCurrentFileIndex={setCurrentFileIndex}
         />
         <DataAndFilesManager
+          updateUserDatasetMeta={updateUserDatasetMetaQueued}
           saveUserDataset={saveUserDatasetQueued}
           getUserDataset={getUserDatasetQueued}
           getUserDatasetMeta={getUserDatasetMetaQueued}
-          datasetMetas={datasetMetas}
+          userDatasetMetas={userDatasetMetas}
           currentDatasetIndex={currentDatasetIndex}
           setCurrentDatasetIndex={setCurrentDatasetIndex}
         />

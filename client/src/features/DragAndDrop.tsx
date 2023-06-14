@@ -69,7 +69,7 @@ const ChildrenAnchor = styled.span`
 `;
 export type DragAndDropProps = {
   children: React.ReactNode;
-  onDrop: (files: File[]) => void;
+  onDrop: (files: File[] | FileList) => void;
   onDragMessage?: string;
   onUploadingMessage?: string;
   onProcessingMessage?: string;

@@ -1,17 +1,17 @@
-import Papa from 'papaparse';
+import Papa from "papaparse";
 
 export const parseCSV = (
-  file: File,
+  file: File
   // options: Papa.ParseLocalConfig
 ) => {
   return Papa.parse(file, {
-    complete: function(results) {
+    complete: function (results) {
       console.log(results);
     },
-    step: function(results, parser) {
+    step: function (results, parser) {
       console.log("Row data:", results.data);
       console.log("Row errors:", results.errors);
-    }
+    },
   });
 };
 
@@ -88,40 +88,15 @@ export const bytesToSize = (bytes: number) => {
   return `${Math.round(bytes / Math.pow(1024, i))} ${sizes[i]}`;
 };
 
+export const getFileExtension = (filename: string) =>
+  (filename.split(".").pop() || "").toLowerCase();
 
-export const compressNumber = (n: number) => {
-  if (n < 0 || n > 4294967295) {
-    throw new Error("Number must be between 0 and 4294967295.");
-  }
-  
-  const bytes = [0, 0, 0, 0];
-  bytes[0] = n % 255;
-  n = Math.floor(n / 255);
-  bytes[1] = n % 255;
-  n = Math.floor(n / 255);
-  bytes[2] = n % 255;
-  n = Math.floor(n / 255);
-  bytes[3] = n % 255;
-
-  return bytes;
-};
-
-export const decompressNumber = (bytes: [number, number, number, number]) => {
-  let n = 0;
-  n = n * 255 + bytes[3];
-  n = n * 255 + bytes[2];
-  n = n * 255 + bytes[1];
-  n = n * 255 + bytes[0];
-
-  return n
-}
-
-export const getFileExtension = (filename: string) => (filename.split(".").pop() || "").toLowerCase();
-
-
-export const getFileStructurePattern = (filestring: string, fileType = 'CSV') => {
+export const getFileStructurePattern = (
+  filestring: string,
+  fileType = "CSV"
+) => {
   const rows = filestring.split("\n");
-  if (fileType === 'CSV') {
+  if (fileType === "CSV") {
     const anomalies = [];
     const header = rows[0];
     const expectedNumColumns = header.split(",").length;
@@ -132,7 +107,11 @@ export const getFileStructurePattern = (filestring: string, fileType = 'CSV') =>
       numColumnsPerRow[i] = numColumns;
 
       if (numColumns !== expectedNumColumns) {
-        anomalies.push(`Row ${i + 1} has ${numColumns} columns, expected ${expectedNumColumns}`);
+        anomalies.push(
+          `Row ${
+            i + 1
+          } has ${numColumns} columns, expected ${expectedNumColumns}`
+        );
       }
     }
 
@@ -142,9 +121,8 @@ export const getFileStructurePattern = (filestring: string, fileType = 'CSV') =>
       });
       return anomalies;
     } else {
-
     }
   }
 
-  throw new Error('Unsupported file type');
+  throw new Error("Unsupported file type");
 };
