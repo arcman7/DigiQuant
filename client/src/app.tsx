@@ -13,7 +13,15 @@ import {
   getUserFilesDB,
   saveUserFile,
 } from "./services/UserFiles";
-import { UserDataset, getUserDataset, getUserDatasetsDB, saveUserDataset } from "./services/UserDatasets";
+import {
+  UserDataset,
+  UserDatasetMeta,
+  getUserDataset,
+  getUserDatasetMeta,
+  getUserDatasetsDB,
+  saveUserDataset,
+} from "./services/UserDatasets";
+import { getFileExtension } from "./helpers/FileReader";
 
 const AppContainer = styled.div`
   display: flex;
@@ -32,9 +40,8 @@ const App = () => {
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
 
   const [__, setUserDatasetsDb] = useState<LocalForage | null>(null);
-  const [datasetNames, setDatasetNames] = useState<string[]>([]);
+  const [datasetMetas, setDatasetMeta] = useState<UserDatasetMeta[]>([]);
   const [currentDatasetIndex, setCurrentDatasetIndex] = useState<number>(0);
-
 
   userFilesDBLoadingProm.then((db) => {
     if (userFilesDBhasLoaded) return;
@@ -54,7 +61,18 @@ const App = () => {
     console.log("userDatasetsDB loaded", db);
     setUserDatasetsDb(db);
     db.keys().then((keys) => {
-      setDatasetNames(keys);
+      /* TODO: Clean up this mess */
+      const datasetMetaKeys = keys.filter((key) => key.slice(-5) === "_meta");
+      Promise.all(
+        datasetMetaKeys.map((key) => getUserDatasetMeta(db, key))
+      ).then((datasetMetas: (UserDatasetMeta | null)[]) => {
+        const updatedDatasets: UserDatasetMeta[] = [];
+        datasetMetas.forEach((dataset) => {
+          if (dataset === null) return;
+          updatedDatasets.push(dataset);
+        });
+        setDatasetMeta(updatedDatasets);
+      });
     });
 
     userDatasetsDBhasLoaded = true;
@@ -77,13 +95,14 @@ const App = () => {
   };
 
   const saveUserDatasetQueued = (
-    filename: string,
+    datasetName: string,
     dataset: string | File,
-    filetype: string,
+    filetype: "text" | "binary"
   ) => {
     return userDatasetsDBLoadingProm.then((db) => {
-      return saveUserDataset(db, filename, {
+      return saveUserDataset(db, datasetName, {
         filetype,
+        extension: getFileExtension(datasetName),
         dataset,
         lastModified: Date.now(),
       }).catch((err) => {
@@ -98,9 +117,19 @@ const App = () => {
     });
   };
 
-  const getUserDatasetQueued = (datasetName: string): Promise<UserDataset | null> => {
+  const getUserDatasetMetaQueued = (
+    datasetName: string
+  ): Promise<UserDatasetMeta | null> => {
     return userDatasetsDBLoadingProm.then((db) => {
-      return getUserDataset(db, datasetName);
+      return getUserDatasetMeta(db, datasetName);
+    });
+  };
+
+  const getUserDatasetQueued = (
+    datasetMeta: UserDatasetMeta
+  ): Promise<File | string | null> => {
+    return userDatasetsDBLoadingProm.then((db) => {
+      return getUserDataset(db, datasetMeta);
     });
   };
 
@@ -114,8 +143,13 @@ const App = () => {
           currentFileIndex={currentFileIndex}
           setCurrentFileIndex={setCurrentFileIndex}
         />
-        <DataAndFilesManager saveUserDataset={saveUserDatasetQueued} getUserDataset={getUserDatasetQueued} datasetNames={datasetNames}
-        currentDatasetIndex={currentDatasetIndex} setCurrentDatasetIndex={setCurrentDatasetIndex}
+        <DataAndFilesManager
+          saveUserDataset={saveUserDatasetQueued}
+          getUserDataset={getUserDatasetQueued}
+          getUserDatasetMeta={getUserDatasetMetaQueued}
+          datasetMetas={datasetMetas}
+          currentDatasetIndex={currentDatasetIndex}
+          setCurrentDatasetIndex={setCurrentDatasetIndex}
         />
         {/* <canvas id="canvas"></canvas> */}
       </AppContainer>

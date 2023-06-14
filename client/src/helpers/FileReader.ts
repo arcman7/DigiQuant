@@ -8,7 +8,10 @@ export const parseCSV = (
     complete: function(results) {
       console.log(results);
     },
-    // ...options
+    step: function(results, parser) {
+      console.log("Row data:", results.data);
+      console.log("Row errors:", results.errors);
+    }
   });
 };
 
@@ -85,28 +88,6 @@ export const bytesToSize = (bytes: number) => {
   return `${Math.round(bytes / Math.pow(1024, i))} ${sizes[i]}`;
 };
 
-/*export const compressNumber = (n: number) => {
-  if (n < 0 || n > 4294967295) {
-    throw new Error("Number must be between 0 and 4294967295.");
-  }
-  const bytes = [0, 0, 0, 0];
-  
-  for (let i = 0; i < 4; i++) {
-    bytes[i] = n % 256;
-    n = Math.floor(n / 256);
-  }
-  return bytes;
-};
-*/
-/*export const decompressNumber = (bytes: [number, number, number, number]) => {
-  let n = 0;
-  for (let i = 3; i >= 0; i--) {
-    n = n * 256 + bytes[3];
-  }
-
-  return n
-}
-*/
 
 export const compressNumber = (n: number) => {
   if (n < 0 || n > 4294967295) {
@@ -135,7 +116,7 @@ export const decompressNumber = (bytes: [number, number, number, number]) => {
   return n
 }
 
-export const getExtension = (filename: string) => filename.split(".").pop();
+export const getFileExtension = (filename: string) => (filename.split(".").pop() || "").toLowerCase();
 
 
 export const getFileStructurePattern = (filestring: string, fileType = 'CSV') => {

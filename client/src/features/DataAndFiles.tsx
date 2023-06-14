@@ -4,7 +4,8 @@ import Dropdown from "react-bootstrap/Dropdown";
 
 import DragAndDrop from "./DragAndDrop";
 import SaveDatasetForm from "./SaveDatasetForm";
-import { UserDataset } from "../services/UserDatasets";
+import { UserDataset, UserDatasetMeta } from "../services/UserDatasets";
+import MyDatasets from "./MyDatasets";
 
 const DataAndFilesContainer = styled.div`
   display: flex;
@@ -63,10 +64,13 @@ type DataAndFilesManagerProps = {
   saveUserDataset: (
     filename: string,
     dataset: File | string,
-    filetype: string
+    filetype: "text" | "binary"
   ) => Promise<void>;
-  getUserDataset: (filename: string) => Promise<UserDataset | null>;
-  datasetNames: string[];
+  getUserDataset: (
+    datasetMeta: UserDatasetMeta
+  ) => Promise<File | string | null>;
+  getUserDatasetMeta: (filename: string) => Promise<UserDatasetMeta | null>;
+  datasetMetas: UserDatasetMeta[];
   currentDatasetIndex: number;
   setCurrentDatasetIndex: (index: number) => void;
 };
@@ -74,7 +78,7 @@ type DataAndFilesManagerProps = {
 const DataAndFilesManager = ({
   saveUserDataset,
   getUserDataset,
-  datasetNames,
+  datasetMetas,
   currentDatasetIndex,
   setCurrentDatasetIndex,
 }: DataAndFilesManagerProps) => {
@@ -84,8 +88,7 @@ const DataAndFilesManager = ({
     useState<boolean>(false);
   const [fileBeingUploaded, setFileBeingUploaded] = useState<File | null>(null);
 
-  const menuChoices = ["Upload", "Public Datasets", "My Datasets"];
-  const defaultPreviewText = "Data and Files";
+  const menuChoices = ["My Datasets", "Public Datasets", "Upload"];
 
   const renderMenuChoice = (choice: string, index: number) => {
     const menuChoiceClick = () => {
@@ -106,6 +109,11 @@ const DataAndFilesManager = ({
   const renderedView = (() => {
     switch (selectedMenuChoice) {
       case 0:
+        return <MyDatasets datasetMetas={datasetMetas} />;
+      case 1:
+        return <div>{menuChoices[selectedMenuChoice]}</div>;
+      default:
+      case 2:
         return (
           <DragAndDrop
             onDrop={(files: File[]) => {
@@ -116,7 +124,6 @@ const DataAndFilesManager = ({
               setFileBeingUploaded(files[0]);
               setProcessingUpload(true);
               setShowSaveDatasetModal(true);
-
             }}
           >
             Files and Data
@@ -126,16 +133,20 @@ const DataAndFilesManager = ({
                 setShowSaveDatasetModal(false);
                 setProcessingUpload(false);
               }}
-              handleSubmit={() => {}}
+              saveUserDataset={(
+                filepath: string,
+                dataset: string | File,
+                filetype: "text" | "binary"
+              ) => {
+                return saveUserDataset(filepath, dataset, filetype).then(() => {
+                  setShowSaveDatasetModal(false);
+                  setProcessingUpload(false);
+                });
+              }}
               show={showSaveDatasetModal}
             />
           </DragAndDrop>
         );
-      case 1:
-        return <div>{menuChoices[selectedMenuChoice]}</div>;
-      case 2:
-        return <div>{menuChoices[selectedMenuChoice]}</div>;
-      default:
     }
   })();
 

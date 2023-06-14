@@ -7,6 +7,7 @@ import ModalFooter from "react-bootstrap/ModalFooter";
 import ModalTitle from "react-bootstrap/ModalTitle";
 import Button from "react-bootstrap/Button";
 import { bytesToSize, readChunkAsText } from "../helpers/FileReader";
+import { UserDataset } from "../services/UserDatasets";
 
 // import { UserDataset } from "../services/UserDatasets";
 
@@ -46,7 +47,11 @@ const SubFooter = styled.div`
 
 type SaveDatasetFormProps = {
   handleClose: () => void;
-  handleSubmit: () => void;
+  saveUserDataset: (
+    filepath: string,
+    dataset: File | string,
+    filetype: "text" | "binary"
+  ) => Promise<void>;
   show: boolean;
   file: File | null;
 };
@@ -55,7 +60,7 @@ const SaveDatasetForm = ({
   file,
   show,
   handleClose,
-  handleSubmit,
+  saveUserDataset,
 }: SaveDatasetFormProps) => {
   if (!file) return null;
 
@@ -89,7 +94,14 @@ const SaveDatasetForm = ({
         <SubFooter> Preview file as text. </SubFooter>
       </ModalBody>
       <ModalFooter>
-        <Button variant="primary" onClick={handleSubmit}>
+        <Button
+          variant="primary"
+          onClick={() => {
+            saveUserDataset(
+              file.name, file, 'text'
+            );
+          }}
+        >
           Save
         </Button>
       </ModalFooter>
